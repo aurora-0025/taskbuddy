@@ -22,8 +22,8 @@ This is a task management application built using React, TypeScript, and Firebas
 - [x] Mark multiple tasks as complete
 
 ### 📝 Task History and Activity Log
-- [ ] Track task changes (creation, edits, deletions)
-- [ ] Display activity log for each task
+- [x] Track task changes (creation, edits, deletions)
+- [x] Display activity log for each task
 
 ### 📎 File Attachments
 - [ ] Attach files/documents to tasks
@@ -63,7 +63,7 @@ This is a task management application built using React, TypeScript, and Firebas
 ## 🚀 Deployment
 The application is live and accessible at:
 
-[🔗 Live Demo]()
+[🔗 Live Demo](https://taskbuddy-orcin.vercel.app/signin)
 
 ## 📜 Installation & Running the Project
 
