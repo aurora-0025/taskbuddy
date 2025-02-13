@@ -13,6 +13,7 @@ import { InlineAddTask } from "./add-task-row";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
+import { Task } from "@/firebase/tasks";
 
 export default function TaskTable({
     status,
@@ -21,7 +22,7 @@ export default function TaskTable({
     selectedTaskIds,
 }: {
     status: string;
-    tasks: any[];
+    tasks: Task[];
     toggleTaskSelection: (taskId: string) => void;
     selectedTaskIds: Set<string>;
 }) {
@@ -58,7 +59,7 @@ export default function TaskTable({
                     </div>
                 )}
                 <SortableContext
-                    items={tasks.map((task) => task.id)}
+                    items={tasks.map((task) => task.id!)}
                     strategy={verticalListSortingStrategy}
                 >
                     {tasks.length === 0 ? (
@@ -73,7 +74,7 @@ export default function TaskTable({
                                     key={task.id}
                                     task={task}
                                     status={status}
-                                    onToggle={() => toggleTaskSelection(task.id)}
+                                    onToggle={() => toggleTaskSelection(task.id!)}
                                     isChecked={selectedTaskIds.has(task.id!)}
                                 />
                             ))}

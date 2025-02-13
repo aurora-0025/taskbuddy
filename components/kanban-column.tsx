@@ -17,7 +17,7 @@ export function KanbanColumn({
   color,
   tasks,
 }: DroppableColumnProps) {
-  const { isOver, setNodeRef } = useDroppable({ id: status });
+  const { setNodeRef } = useDroppable({ id: status });
 
   return (
     <div

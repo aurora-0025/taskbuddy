@@ -31,7 +31,7 @@ import { Rows3, SquareKanban, Search, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
-    const [user, loading, error] = useAuthState(auth);
+    const [user, loading] = useAuthState(auth);
     const router = useRouter();
     const queryClient = useQueryClient();
 
@@ -277,7 +277,7 @@ export default function Home() {
                             height={300}
                         />
                         <p className="mt-2 text-sm text-gray-500">
-                            It looks like we can't find any results that match.
+                            It looks like we can&rsquo;t find any results that match.
                         </p>
                     </div>
                 ) : isDesktop ? (

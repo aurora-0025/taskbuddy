@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Task Management App
 
-## Getting Started
+## 🚀 Overview
+This is a task management application built using React, TypeScript, and Firebase. It allows users to manage their tasks efficiently with features like authentication, categorization, drag-and-drop reordering, and a Kanban board view.
 
-First, run the development server:
+## ✅ Features Checklist
+
+### 🔐 User Authentication
+- [x] Firebase Authentication with Google Sign-In
+- [x] User profile management
+
+### 📋 Task Management
+- [x] Create, edit, and delete tasks
+- [x] Task categorization (Work, Personal, etc.)
+- [x] Task tagging
+- [x] Set due dates for tasks
+- [x] Drag-and-drop to rearrange tasks
+- [x] Sort tasks based on due dates (ascending/descending)
+
+### 📌 Batch Actions
+- [x] Delete multiple tasks at once
+- [x] Mark multiple tasks as complete
+
+### 📝 Task History and Activity Log
+- [ ] Track task changes (creation, edits, deletions)
+- [ ] Display activity log for each task
+
+### 📎 File Attachments
+- [ ] Attach files/documents to tasks
+- [ ] File upload feature in task form
+- [ ] Display attached files in task details
+
+### 🔍 Filter Options
+- [x] Filter tasks by tags, category, and date range
+- [x] Search tasks by title
+
+### 📌 Board/List View
+- [x] Toggle between Kanban board view and list view
+
+### 📱 Responsive Design
+- [x] Mobile-first approach
+- [x] Adapts to various screen sizes (mobile, tablet, desktop)
+
+## 🛠️ Technical Requirements
+- [x] Built with **React** and **TypeScript**
+- [x] Uses **Firebase** for authentication and data storage
+- [x] Utilizes **React Query** for data fetching and state management
+
+## 🏗️ Challenges Faced & Solutions
+
+### 🔄 Drag-and-Drop Implementation
+**Challenge:** Finding a robust drag-and-drop library that supports reordering and status updates.
+**Solution:** Implemented **dnd-kit**, which provides flexibility and better performance.
+
+### 🎨 Using shadcn with React 19
+**Challenge:** Shadcn did not fully support React 19 at the time of development.
+**Solution:** Used the **canary version** of shadcn/ui, which includes updates compatible with React 19.
+
+### 📦 Learning React Query
+**Challenge:** Understanding caching, optimistic updates, and mutations.
+**Solution:** Followed official documentation and hands-on experimentation to master data fetching and state management.
+
+## 🚀 Deployment
+The application is live and accessible at:
+
+[🔗 Live Demo]()
+
+## 📜 Installation & Running the Project
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-repo-url.git
+cd your-repo-folder
+
+# Install dependencies
+npm install
+
+# Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

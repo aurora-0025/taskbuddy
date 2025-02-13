@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { format, addDays } from "date-fns";
+import { addDays } from "date-fns";
 import { DateTimePicker } from "./ui/datetime-picker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addTask } from "@/firebase/tasks";

@@ -36,7 +36,6 @@ export default function TaskRow({
     isChecked,
     onToggle,
     className,
-    ...props
 }: React.ComponentProps<"li"> & {
     task: Task;
     status: string;
