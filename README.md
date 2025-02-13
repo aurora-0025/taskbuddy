@@ -63,7 +63,7 @@ This is a task management application built using React, TypeScript, and Firebas
 ## 🚀 Deployment
 The application is live and accessible at:
 
-[🔗 Live Demo]()
+[🔗 Live Demo](https://taskbuddy-orcin.vercel.app/signin)
 
 ## 📜 Installation & Running the Project
 
