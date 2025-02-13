@@ -1,101 +1,310 @@
+"use client";
+import { useState, useEffect, useMemo } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+    DragStartEvent,
+    DragEndEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { useRouter } from "next/navigation";
+import Header from "@/components/header";
+import { CreateTaskDialog } from "@/components/create-task-dialog";
+import { Input } from "@/components/ui/input";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+} from "@/components/ui/select";
+import { addDays } from "date-fns";
+import { auth } from "@/lib/firebase";
+import { getUserTasks, Task, updateTaskStatus } from "@/firebase/tasks";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { TableView } from "@/components/table-view";
+import { KanbanView } from "@/components/kanban-view";
+import { Rows3, SquareKanban, Search, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const [user, loading, error] = useAuthState(auth);
+    const router = useRouter();
+    const queryClient = useQueryClient();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+    const [query, setQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<
+        string | undefined
+    >(undefined);
+    const minDate = useMemo(() => addDays(new Date(), 1), []);
+
+    const [draggedTask, setDraggedTask] = useState<Task | undefined>(undefined);
+    const [currentView, setCurrentView] = useState<"table" | "kanban">("table");
+    const isDesktop = useIsDesktop(1024);
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push("/signin");
+        }
+    }, [loading, user, router]);
+
+    const { data: tasks = [], isLoading } = useQuery({
+        queryKey: ["tasks", user?.uid],
+        queryFn: () => (user ? getUserTasks(user.uid) : Promise.resolve([])),
+        enabled: !!user,
+    });
+
+    const filteredTasks = useMemo(() => {
+        return tasks.filter((task) => {
+            if (dateFilter) {
+                const taskDate = new Date(task.dueDate);
+                if (taskDate.toDateString() !== dateFilter.toDateString()) {
+                    return false;
+                }
+            }
+            if (selectedCategory) {
+                if (
+                    task.category.toLowerCase() !==
+                    selectedCategory.toLowerCase()
+                ) {
+                    return false;
+                }
+            }
+            if (query) {
+                if (!task.title.toLowerCase().includes(query.toLowerCase())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }, [tasks, dateFilter, selectedCategory, query]);
+
+    const updateStatusMutation = useMutation({
+        mutationFn: async ({
+            taskId,
+            newStatus,
+        }: {
+            taskId: string;
+            newStatus: string;
+        }) => {
+            if (!user) return;
+            await updateTaskStatus(user.uid, taskId, newStatus);
+        },
+        onMutate: async ({ taskId, newStatus }) => {
+            await queryClient.cancelQueries({ queryKey: ["tasks", user?.uid] });
+            const previousTasks = queryClient.getQueryData<Task[]>([
+                "tasks",
+                user?.uid,
+            ]);
+            queryClient.setQueryData<Task[]>(
+                ["tasks", user?.uid],
+                (oldTasks = []) =>
+                    oldTasks.map((task) =>
+                        task.id === taskId
+                            ? { ...task, status: newStatus }
+                            : task,
+                    ),
+            );
+            return { previousTasks };
+        },
+        onError: (err, variables, context) => {
+            if (context?.previousTasks) {
+                queryClient.setQueryData(
+                    ["tasks", user?.uid],
+                    context.previousTasks,
+                );
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["tasks", user?.uid] });
+        },
+    });
+
+    const handleDragStart = (event: DragStartEvent) => {
+        const { active } = event;
+        if (!active) return;
+        const found = tasks.find((t) => t.id === active.id);
+        if (found) setDraggedTask(found);
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!active || !over) return;
+        setDraggedTask(undefined);
+
+        const taskId = active.id.toString();
+        const newStatus = over.id.toString().toLowerCase();
+
+        const validStatuses = ["todo", "in-progress", "completed"];
+        if (validStatuses.includes(newStatus)) {
+            const taskChanged = tasks.some(
+                (task) => task.id === taskId && task.status !== newStatus,
+            );
+            if (taskChanged) {
+                updateStatusMutation.mutate({ taskId, newStatus });
+            }
+        } else {
+            const oldIndex = tasks.findIndex((t) => t.id === taskId);
+            const newIndex = tasks.findIndex((t) => t.id === over.id);
+            if (oldIndex !== -1 && newIndex !== -1) {
+                queryClient.setQueryData(
+                    ["tasks", user?.uid],
+                    (oldTasks: Task[] | undefined) => {
+                        if (!oldTasks) return [];
+                        return arrayMove(oldTasks, oldIndex, newIndex);
+                    },
+                );
+            }
+        }
+    };
+
+    return (
+        <div className="flex min-h-screen flex-col gap-5">
+            <Header />
+            <main className="flex flex-1 flex-col px-5 sm:px-20">
+                {isDesktop && (
+                    <div className="mt-4 flex gap-4">
+                        <button
+                            onClick={() => setCurrentView("table")}
+                            className={`flex cursor-pointer items-center gap-1 pb-1.5 font-semibold ${
+                                currentView === "table"
+                                    ? "border-b-2 border-black text-black"
+                                    : "text-gray-400"
+                            }`}
+                        >
+                            <Rows3 className="h-4 w-4" /> List
+                        </button>
+                        <button
+                            onClick={() => setCurrentView("kanban")}
+                            className={`flex cursor-pointer items-center gap-1 pb-1.5 font-semibold ${
+                                currentView === "kanban"
+                                    ? "border-b-2 border-black text-black"
+                                    : "text-gray-400"
+                            }`}
+                        >
+                            <SquareKanban className="h-4 w-4" /> Board
+                        </button>
+                    </div>
+                )}
+
+                <div className="mt-4 flex w-full flex-col justify-between md:flex-row md:items-center border-b-2 pb-10">
+                    <div className="self-end md:hidden">
+                        <CreateTaskDialog />
+                    </div>
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                        <p className="mr-2">Filter By:</p>
+                        <div className="flex items-center gap-2">
+                            <div>
+                                <Select
+                                    value={selectedCategory}
+                                    onValueChange={(val) =>
+                                        setSelectedCategory(val)
+                                    }
+                                >
+                                    <SelectTrigger className="w-fit rounded-full">
+                                        <SelectValue placeholder="Category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Category</SelectLabel>
+                                            <SelectItem value="work">
+                                                Work
+                                            </SelectItem>
+                                            <SelectItem value="personal">
+                                                Personal
+                                            </SelectItem>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <DateTimePicker
+                                    classNames={{
+                                        trigger:
+                                            "rounded-full [&_svg]:hidden w-fit",
+                                    }}
+                                    initDisplayValue="Due Date"
+                                    value={dateFilter}
+                                    onChange={setDateFilter}
+                                    min={minDate}
+                                    hideTime
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-5 flex items-center gap-2 md:mt-0">
+                        <div className="relative w-full max-w-[300px]">
+                            <Input
+                                type="text"
+                                placeholder="Search"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                className="h-9 rounded-full py-1.5 pr-9 pl-9 text-sm"
+                            />
+                            <div className="pointer-events-none absolute top-[50%] left-0 flex -translate-y-[50%] items-center pl-3">
+                                <Search className="h-4 w-4 text-gray-500" />
+                            </div>
+                            {query && (
+                                <button
+                                    onClick={() => setQuery("")}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                >
+                                    <X className="h-4 w-4 text-gray-500" />
+                                </button>
+                            )}
+                        </div>
+                        <div className="hidden md:block">
+                            <CreateTaskDialog />
+                        </div>
+                    </div>
+                </div>
+
+                {isLoading || loading ? (
+                    <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 py-10">
+                        <Loader2 className="h-5 w-5 animate-spin"/>
+                    </div>
+                ) : !filteredTasks.length ? (
+                    <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 py-10">
+                        <Image
+                            src="/SearchNotFound.svg"
+                            alt="No results"
+                            className="h-auto w-40"
+                            width={200}
+                            height={300}
+                        />
+                        <p className="mt-2 text-sm text-gray-500">
+                            It looks like we can't find any results that match.
+                        </p>
+                    </div>
+                ) : isDesktop ? (
+                    currentView === "table" ? (
+                        <TableView
+                            tasks={filteredTasks}
+                            draggedTask={draggedTask}
+                            handleDragStart={handleDragStart}
+                            handleDragEnd={handleDragEnd}
+                        />
+                    ) : (
+                        <KanbanView
+                            tasks={filteredTasks}
+                            draggedTask={draggedTask}
+                            handleDragStart={handleDragStart}
+                            handleDragEnd={handleDragEnd}
+                        />
+                    )
+                ) : (
+                    <TableView
+                        tasks={filteredTasks}
+                        draggedTask={draggedTask}
+                        handleDragStart={handleDragStart}
+                        handleDragEnd={handleDragEnd}
+                    />
+                )}
+            </main>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
