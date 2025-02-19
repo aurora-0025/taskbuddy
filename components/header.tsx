@@ -22,7 +22,7 @@ export default function Header() {
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
                             <Avatar>
-                                <AvatarImage src={user?.photoURL ?? ""}/>
+                                <AvatarImage src={user?.photoURL ?? undefined}/>
                                 <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() ?? ""}</AvatarFallback>
                             </Avatar>
                             <p className="hidden font-bold text-[#00000099] sm:block">

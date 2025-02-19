@@ -2,10 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-    DragStartEvent,
-    DragEndEvent,
-} from "@dnd-kit/core";
+import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header";
@@ -162,149 +159,159 @@ export default function Home() {
         }
     };
 
-    return (
-        <div className="flex min-h-screen flex-col gap-5">
-            <Header />
-            <main className="flex flex-1 flex-col px-5 sm:px-20">
-                {isDesktop && (
-                    <div className="mt-4 flex gap-4">
-                        <button
-                            onClick={() => setCurrentView("table")}
-                            className={`flex cursor-pointer items-center gap-1 pb-1.5 font-semibold ${
-                                currentView === "table"
-                                    ? "border-b-2 border-black text-black"
-                                    : "text-gray-400"
-                            }`}
-                        >
-                            <Rows3 className="h-4 w-4" /> List
-                        </button>
-                        <button
-                            onClick={() => setCurrentView("kanban")}
-                            className={`flex cursor-pointer items-center gap-1 pb-1.5 font-semibold ${
-                                currentView === "kanban"
-                                    ? "border-b-2 border-black text-black"
-                                    : "text-gray-400"
-                            }`}
-                        >
-                            <SquareKanban className="h-4 w-4" /> Board
-                        </button>
-                    </div>
-                )}
+    if (!loading && user) {
+        return (
+            <div className="flex min-h-screen flex-col gap-5">
+                <Header />
+                <main className="flex flex-1 flex-col px-5 sm:px-20">
+                    {isDesktop && (
+                        <div className="mt-4 flex gap-4">
+                            <button
+                                onClick={() => setCurrentView("table")}
+                                className={`flex cursor-pointer items-center gap-1 pb-1.5 font-semibold ${
+                                    currentView === "table"
+                                        ? "border-b-2 border-black text-black"
+                                        : "text-gray-400"
+                                }`}
+                            >
+                                <Rows3 className="h-4 w-4" /> List
+                            </button>
+                            <button
+                                onClick={() => setCurrentView("kanban")}
+                                className={`flex cursor-pointer items-center gap-1 pb-1.5 font-semibold ${
+                                    currentView === "kanban"
+                                        ? "border-b-2 border-black text-black"
+                                        : "text-gray-400"
+                                }`}
+                            >
+                                <SquareKanban className="h-4 w-4" /> Board
+                            </button>
+                        </div>
+                    )}
 
-                <div className="mt-4 flex w-full flex-col justify-between md:flex-row md:items-center border-b-2 pb-10">
-                    <div className="self-end md:hidden">
-                        <CreateTaskDialog />
-                    </div>
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                        <p className="mr-2">Filter By:</p>
-                        <div className="flex items-center gap-2">
-                            <div>
-                                <Select
-                                    value={selectedCategory}
-                                    onValueChange={(val) =>
-                                        setSelectedCategory(val)
-                                    }
-                                >
-                                    <SelectTrigger className="w-fit rounded-full">
-                                        <SelectValue placeholder="Category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Category</SelectLabel>
-                                            <SelectItem value="work">
-                                                Work
-                                            </SelectItem>
-                                            <SelectItem value="personal">
-                                                Personal
-                                            </SelectItem>
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <DateTimePicker
-                                    classNames={{
-                                        trigger:
-                                            "rounded-full [&_svg]:hidden w-fit",
-                                    }}
-                                    initDisplayValue="Due Date"
-                                    value={dateFilter}
-                                    onChange={setDateFilter}
-                                    min={minDate}
-                                    hideTime
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="mt-5 flex items-center gap-2 md:mt-0">
-                        <div className="relative w-full max-w-[300px]">
-                            <Input
-                                type="text"
-                                placeholder="Search"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                className="h-9 rounded-full py-1.5 pr-9 pl-9 text-sm"
-                            />
-                            <div className="pointer-events-none absolute top-[50%] left-0 flex -translate-y-[50%] items-center pl-3">
-                                <Search className="h-4 w-4 text-gray-500" />
-                            </div>
-                            {query && (
-                                <button
-                                    onClick={() => setQuery("")}
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                >
-                                    <X className="h-4 w-4 text-gray-500" />
-                                </button>
-                            )}
-                        </div>
-                        <div className="hidden md:block">
+                    <div className="mt-4 flex w-full flex-col justify-between border-b-2 pb-10 md:flex-row md:items-center">
+                        <div className="self-end md:hidden">
                             <CreateTaskDialog />
                         </div>
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                            <p className="mr-2">Filter By:</p>
+                            <div className="flex items-center gap-2">
+                                <div>
+                                    <Select
+                                        value={selectedCategory}
+                                        onValueChange={(val) =>
+                                            setSelectedCategory(val)
+                                        }
+                                    >
+                                        <SelectTrigger className="w-fit rounded-full">
+                                            <SelectValue placeholder="Category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>
+                                                    Category
+                                                </SelectLabel>
+                                                <SelectItem value="work">
+                                                    Work
+                                                </SelectItem>
+                                                <SelectItem value="personal">
+                                                    Personal
+                                                </SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <DateTimePicker
+                                        classNames={{
+                                            trigger:
+                                                "rounded-full [&_svg]:hidden w-fit",
+                                        }}
+                                        initDisplayValue="Due Date"
+                                        value={dateFilter}
+                                        onChange={setDateFilter}
+                                        min={minDate}
+                                        hideTime
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-5 flex items-center gap-2 md:mt-0">
+                            <div className="relative w-full max-w-[300px]">
+                                <Input
+                                    type="text"
+                                    placeholder="Search"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className="h-9 rounded-full py-1.5 pr-9 pl-9 text-sm"
+                                />
+                                <div className="pointer-events-none absolute top-[50%] left-0 flex -translate-y-[50%] items-center pl-3">
+                                    <Search className="h-4 w-4 text-gray-500" />
+                                </div>
+                                {query && (
+                                    <button
+                                        onClick={() => setQuery("")}
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                    >
+                                        <X className="h-4 w-4 text-gray-500" />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="hidden md:block">
+                                <CreateTaskDialog />
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                {isLoading || loading ? (
-                    <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 py-10">
-                        <Loader2 className="h-5 w-5 animate-spin"/>
-                    </div>
-                ) : !filteredTasks.length ? (
-                    <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 py-10">
-                        <Image
-                            src="/SearchNotFound.svg"
-                            alt="No results"
-                            className="h-auto w-40"
-                            width={200}
-                            height={300}
-                        />
-                        <p className="mt-2 text-sm text-gray-500">
-                            It looks like we can&rsquo;t find any results that match.
-                        </p>
-                    </div>
-                ) : isDesktop ? (
-                    currentView === "table" ? (
+                    {isLoading || loading ? (
+                        <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 py-10">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        </div>
+                    ) : !filteredTasks.length ? (
+                        <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 py-10">
+                            <Image
+                                src="/SearchNotFound.svg"
+                                alt="No results"
+                                className="h-auto w-40"
+                                width={200}
+                                height={300}
+                            />
+                            <p className="mt-2 text-sm text-gray-500">
+                                It looks like we can&rsquo;t find any results
+                                that match.
+                            </p>
+                        </div>
+                    ) : isDesktop ? (
+                        currentView === "table" ? (
+                            <TableView
+                                tasks={filteredTasks}
+                                draggedTask={draggedTask}
+                                handleDragStart={handleDragStart}
+                                handleDragEnd={handleDragEnd}
+                            />
+                        ) : (
+                            <KanbanView
+                                tasks={filteredTasks}
+                                draggedTask={draggedTask}
+                                handleDragStart={handleDragStart}
+                                handleDragEnd={handleDragEnd}
+                            />
+                        )
+                    ) : (
                         <TableView
                             tasks={filteredTasks}
                             draggedTask={draggedTask}
                             handleDragStart={handleDragStart}
                             handleDragEnd={handleDragEnd}
                         />
-                    ) : (
-                        <KanbanView
-                            tasks={filteredTasks}
-                            draggedTask={draggedTask}
-                            handleDragStart={handleDragStart}
-                            handleDragEnd={handleDragEnd}
-                        />
-                    )
-                ) : (
-                    <TableView
-                        tasks={filteredTasks}
-                        draggedTask={draggedTask}
-                        handleDragStart={handleDragStart}
-                        handleDragEnd={handleDragEnd}
-                    />
-                )}
-            </main>
+                    )}
+                </main>
+            </div>
+        );
+    }
+    return (
+        <div className="absolute flex h-screen w-screen items-center justify-center overflow-hidden">
+            <Loader2 className="h-5 w-5 animate-spin" />
         </div>
     );
 }
