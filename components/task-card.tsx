@@ -103,7 +103,7 @@ export default function TaskCard({ task }: TaskCardProps) {
                                     sideOffset={8}
                                 >
                                     <DropdownMenuItem
-                                        onClick={(e) => {
+                                        onMouseDown={(e) => {
                                             e.stopPropagation();
                                             setEditOpen(true);
                                         }}
@@ -113,7 +113,7 @@ export default function TaskCard({ task }: TaskCardProps) {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         className="text-red-600 hover:!text-red-600"
-                                        onClick={(e) => {
+                                        onMouseDown={(e) => {
                                             e.stopPropagation();
                                             handleDelete();
                                         }}
